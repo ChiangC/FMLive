@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.SurfaceView;
@@ -20,26 +21,44 @@ public class MainActivity extends AppCompatActivity {
 
     private LivePusher mLivePusher;
     private SurfaceView mSurfaceView;
-    
+    private Button mPushBtn;
+    private Button mSwitchBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mSurfaceView = findViewById(R.id.live_surfaceview);
-        
+        mPushBtn = findViewById(R.id.btn_push);
+        mSwitchBtn = findViewById(R.id.btn_switch);
+
+        initViews();
+
         checkPermission();
 
     }
 
-    public void checkPermission(){
-        if (Build.VERSION.SDK_INT>22){
-            if (checkSelfPermission(android.Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED
-                    ||checkSelfPermission(Manifest.permission.RECORD_AUDIO)!= PackageManager.PERMISSION_GRANTED){
-                requestPermissions(new String[]{android.Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, 100);
-            }else {
-                init();
+    private void initViews(){
+        mPushBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                start(v);
             }
+        });
+
+        mSwitchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchCamera();
+            }
+        });
+    }
+
+    public void checkPermission(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED
+                ||ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)!= PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{android.Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, 100);
         }else {
             init();
         }
@@ -60,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void start(View view) {
+    private void start(View view) {
         Button btn = (Button)view;
         if(btn.getText().equals("开始直播")){
             mLivePusher.startPush();
@@ -71,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void switchVideo(View view) {
+    private void switchCamera() {
         mLivePusher.switchCamera();
     }
     

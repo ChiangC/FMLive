@@ -47,12 +47,13 @@ public class AudioPusher extends Pusher {
 
     @Override
     public void stopPush() {
-
+        mAudioRecord.stop();
+        isPushing = false;
     }
 
     @Override
     public void release() {
-
+        mAudioRecord.release();
     }
 
     class AudioRecordTask implements Runnable{
