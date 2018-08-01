@@ -29,6 +29,8 @@ public class AudioPusher extends Pusher {
         mPushNative = pushNative;
         mAudioParam = audioParam;
 
+        mPushNative.setAudioOptions(mAudioParam.getSampleRateInHz(), mAudioParam.getChannel());
+
         int channelConfig = audioParam.getChannel() == 1? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO;
         mMinBufferSize = AudioRecord.getMinBufferSize(audioParam.getSampleRateInHz(),
                 channelConfig, AudioFormat.ENCODING_PCM_16BIT);

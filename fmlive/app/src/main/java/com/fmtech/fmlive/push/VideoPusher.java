@@ -60,12 +60,13 @@ public class VideoPusher extends Pusher implements SurfaceHolder.Callback, Camer
 
     @Override
     public void stopPush() {
-
+        mCamera.stopPreview();
+        isPushing = false;
     }
 
     @Override
     public void release() {
-
+        mCamera.release();
     }
 
     public void switchCamera(){
@@ -95,14 +96,15 @@ public class VideoPusher extends Pusher implements SurfaceHolder.Callback, Camer
                     landscapeData2Raw(mBuffers);
                     break;
             }
+
+            //very important
+            if(null != mCamera){
+                mCamera.addCallbackBuffer(mBuffers);
+            }
+
+            mPushNative.pushVideo(mRaw);
         }
 
-        //very important
-        if(null != mCamera){
-            mCamera.addCallbackBuffer(mBuffers);
-        }
-
-        mPushNative.pushVideo(mRaw);
     }
 
     private void portraitData2Raw(byte[] data){

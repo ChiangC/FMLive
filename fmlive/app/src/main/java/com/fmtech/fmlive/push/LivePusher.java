@@ -40,7 +40,7 @@ public class LivePusher {
     }
 
     public void startPush(){
-        mVideoPusher.startPush();
+//        mVideoPusher.startPush();
         mAudioPusher.startPush();
     }
 

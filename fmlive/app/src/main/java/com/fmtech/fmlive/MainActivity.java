@@ -17,7 +17,7 @@ import com.fmtech.fmlive.push.LivePusher;
 public class MainActivity extends AppCompatActivity {
     
     private static String URL = "rtmp://send1a.douyu.com/live/" +
-            "999565rDN17wQEOF?wsSecret=f76118ec9b7fa3e5514004b5e4f4bc85&wsTime=5b5ac68d&wsSeek=off&wm=0&tw=0";
+            "999565rLHPgotne7?wsSecret=db275d3ff30e8036cccecd93faeb836e&wsTime=5b6185d7&wsSeek=off&wm=0&tw=0";
 
     private LivePusher mLivePusher;
     private SurfaceView mSurfaceView;
