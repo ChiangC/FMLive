@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <android/log.h>
 #include <x264.h>
+#include <pthread.h>
 
 #define LOGI(FORMAT,...) __android_log_print(ANDROID_LOG_INFO,"FMLive",FORMAT,##__VA_ARGS__)
 #define LOGE(FORMAT,...) __android_log_print(ANDROID_LOG_ERROR,"FMLive",FORMAT,##__VA_ARGS__)
@@ -18,8 +19,8 @@ extern "C"{
 
 
 char *path;
-pthread_mutex_t mutex;
-pthread_cond_t cond;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 int publishing = 0;
 long start_time = 0;
@@ -55,7 +56,7 @@ void *push_thread_routine(void *arg){
     rtmp->Link.timeout = 5;
     RTMP_SetupURL(rtmp, path);
     RTMP_EnableWrite(rtmp);
-
+    LOGI("RTMP Connect Begin.");
     if(!RTMP_Connect(rtmp, NULL)){
         LOGE("RTMP Connect failed.");
         goto END;
@@ -72,6 +73,7 @@ void *push_thread_routine(void *arg){
         }
         RTMPPacket_Free(packet);
         free(packet);
+//        LOGI("Send Packet success.");
     }
     publishing = 0;
     free(path);
@@ -95,7 +97,7 @@ void enqueuePacket(RTMPPacket *packet){
 void add_aac_body(unsigned char *bitBuf, int length){
     int body_size = length + 2;
     RTMPPacket *packet = (RTMPPacket *)malloc(sizeof(RTMPPacket));
-    RTMPPacket_Alloc(packet, length + 2);
+    RTMPPacket_Alloc(packet, body_size);
     char *body = packet->m_body;
     body[0] = 0xAF;
     body[1] = 0x01;
@@ -203,8 +205,8 @@ Java_com_fmtech_fmlive_push_PushNative_startPush(JNIEnv *env, jobject instance, 
     memset(path, 0, strlen(url) + 1);
     memcpy(path, url, strlen(url));
 
-    pthread_cond_init(&cond, NULL);
-    pthread_mutex_init(&mutex, NULL);
+    /*pthread_cond_init(&cond, NULL);
+    pthread_mutex_init(&mutex, NULL);*/
     pthread_t push_thread_id;
     start_time = RTMP_GetTime();
     pthread_create(&push_thread_id, NULL, push_thread_routine, NULL);
@@ -268,6 +270,8 @@ Java_com_fmtech_fmlive_push_PushNative_setAudioOptions(JNIEnv *env, jobject inst
     audioHandle = faacEncOpen(nSampleRate, channel, &inputSamples, &maxOutputBytes);
     if(!audioHandle){
         LOGE("faacEncOpen failed.");
+    }else{
+        LOGI("faacEncOpen success.");
     }
 
     faacEncConfigurationPtr  configurationPtr = faacEncGetCurrentConfiguration(audioHandle);
@@ -293,12 +297,15 @@ Java_com_fmtech_fmlive_push_PushNative_pushAudio(JNIEnv *env, jobject instance, 
                                                  jint len) {
     jbyte *data = env->GetByteArrayElements(data_, NULL);
 
-    unsigned char *bitBuf = (unsigned char *)malloc(sizeof(unsigned char) * maxOutputBytes);
+    size_t byteCount = sizeof(unsigned char) * maxOutputBytes;
+    unsigned char *bitBuf = (unsigned char *)malloc(byteCount);
+    memset(bitBuf, 0, byteCount);
     int byteLength = faacEncEncode(audioHandle, (int32_t *)data, len, bitBuf, maxOutputBytes);
     LOGI("Got audio data length %d", byteLength);
 
     if(byteLength > 0){
         add_aac_body(bitBuf, byteLength);
+//        LOGI("add_aac_body");
     }
 
     env->ReleaseByteArrayElements(data_, data, 0);

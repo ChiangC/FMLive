@@ -40,8 +40,8 @@ public class LivePusher {
     }
 
     public void startPush(){
-//        mVideoPusher.startPush();
-        mAudioPusher.startPush();
+        mVideoPusher.startPush();
+//        mAudioPusher.startPush();
     }
 
     public void stopPush(){
